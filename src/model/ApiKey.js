@@ -1,13 +1,21 @@
-const mongoose = require('mongoose');
-
-const Schema = mongoose.Schema;
-
-const apiKeySchema = new Schema({
-	userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-	apiKey: { type: String, unique: true },
-	createdAt: { type: Date, default: Date.now },
-});
-
-const APIKeyModel = mongoose.model('APIKey', apiKeySchema);
-
-module.exports = APIKeyModel;
+module.exports = (sequelize, DataTypes) => {
+	return sequelize.define('apiKey', {
+		id: {
+			type: DataTypes.UUID,
+			allowNull: false,
+			primaryKey: true,
+			defaultValue: DataTypes.UUIDV4,
+		},
+		apiKey: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			required: true,
+			unique: true,
+		},
+		createdAt: {
+			type: DataTypes.DATE,
+			allowNull: false,
+			defaultValue: new Date.now(),
+		},
+	});
+};
