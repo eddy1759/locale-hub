@@ -27,25 +27,25 @@ module.exports = (sequelize, DataTypes) => {
 			validate: {
 				validateMetatdata(value) {
 					if (!value || typeof value !== 'object') {
-						throw new Error('metadata must be an object')
+						throw new Error('metadata must be an object');
 					}
 
 					const requiredFields = [
 						'slogan',
-          				'landmass',
-          				'population',
-          				'dialect',
-          				'latitude',
-          				'longitude',
-          				'createdDate',
-          				'createdBy',
+						'landmass',
+						'population',
+						'dialect',
+						'latitude',
+						'longitude',
+						'createdDate',
+						'createdBy',
 					];
 
 					for (const field of requiredFields) {
 						if (!value[field]) {
 							throw new Error(`metadata.${field} is required`);
 						}
-					},
+					}
 				},
 			},
 		},

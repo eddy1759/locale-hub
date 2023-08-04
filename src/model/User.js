@@ -1,5 +1,7 @@
+const bcrypt = require('bcrypt');
+
 module.exports = (sequelize, DataTypes) => {
-	return sequelize.define('User', {
+	const User = sequelize.define('User', {
 		id: {
 			type: DataTypes.UUID,
 			allowNull: false,
@@ -30,6 +32,7 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: false,
 			validate: {
 				min: 6,
+				isAlphanumeric: true,
 			},
 		},
 		Otp: {
@@ -44,4 +47,17 @@ module.exports = (sequelize, DataTypes) => {
 			defaultValue: false,
 		},
 	});
+
+	// Sequelize hooks to hash the password before saving
+	User.beforeCreate(async (user) => {
+		const hashedPassword = await bcrypt.hash(user.password, 10);
+		user.password = hashedPassword;
+	});
+
+	// Method to compare provided password with the hashed password
+	User.prototype.comparePassword = async function (password) {
+		return bcrypt.compare(password, this.password);
+	};
+
+	return User;
 };
