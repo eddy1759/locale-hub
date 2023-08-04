@@ -1,11 +1,25 @@
-// const { sequelize, DataTypes } = require('sequelize');
-// const UserModel = require('./User');
-// const apiKeyModel = require('./ApiKey');
+const { sequelize, DataTypes } = require('sequelize');
+const UserModel = require('./User');
+const apiKeyModel = require('./ApiKey');
+const localeModel = require('./Locale');
 
-// (async () => await sequelize.sync({ alter: true }))();
+(async () => await sequelize.sync({ alter: true }))();
 
-// const User = UserModel(sequelize, DataTypes);
-// const apiKey = apiKeyModel(sequelize, DataTypes);
+const User = UserModel(sequelize, DataTypes);
+const apiKey = apiKeyModel(sequelize, DataTypes);
+const locale = localeModel(sequelize, DataTypes);
 
 // apiKey - user association
-// A user should be able to have one apiKey with the user id as a foregin key in the apiKeyModel as createBy
+User.hasOne(apiKey, {
+	foreignKey: 'createdBy',
+});
+
+apiKey.belongsTo(User, {
+	foreignKey: 'createdBy',
+});
+
+module.exports = {
+	User,
+	apiKey,
+	locale,
+};
