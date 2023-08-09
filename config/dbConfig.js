@@ -29,4 +29,4 @@ async function syncTable() {
 	}
 }
 
-module.exports = { connectToDatabase, syncTable };
+module.exports = { sequelize, connectToDatabase, syncTable };
