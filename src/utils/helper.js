@@ -11,7 +11,12 @@ const generateJwtToken = (userid) => {
 	return jwt.sign({ userid }, CONFIG.SECRET, { expiresIn: CONFIG.expiresIn });
 };
 
+const verifyJWT = (token) => {
+	return jwt.verify(token, CONFIG.SECRET);
+};
+
 module.exports = {
 	generateAPIKEY,
 	generateJwtToken,
+	verifyJWT,
 };
