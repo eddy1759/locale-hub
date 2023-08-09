@@ -1,28 +1,103 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const sendEmailNotification = require('../utils/sendMail');
+const CONFIG = require('../../config/config');
 
-const Schema = mongoose.Schema;
+module.exports = (sequelize, DataTypes) => {
+	const User = sequelize.define(
+		'User',
+		{
+			id: {
+				type: DataTypes.UUID,
+				allowNull: false,
+				primaryKey: true,
+				defaultValue: DataTypes.UUIDV4,
+			},
+			firstName: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				require: true,
+			},
+			lastName: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				require: true,
+			},
+			email: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				require: true,
+				unique: true,
+				validate: {
+					isEmail: true,
+				},
+			},
+			password: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				validate: {
+					min: 6,
+					isAlphanumeric: true,
+				},
+			},
+			Otp: {
+				type: DataTypes.INTEGER,
+				validate: {
+					len: [6],
+				},
+			},
+			OtpExpiration: {
+				type: DataTypes.DATE,
+			},
+			isVerified: {
+				type: DataTypes.BOOLEAN,
+				allowNull: false,
+				defaultValue: false,
+			},
+		},
+		{
+			tableName: 'users',
+		}
+	);
 
-const UserSchema = new Schema(
-	{
-		username: { type: String, required: true, unique: true },
-		email: { type: String, required: true, unique: true },
-		password: { type: String, required: true },
-		apiKeyId: { type: Schema.Types.ObjectId, ref: 'APIKey' },
-	},
-	{ timestamps: true }
-);
+	// Sequelize hooks to hash the password before saving
+	User.beforeCreate(async (user) => {
+		const hashedPassword = await bcrypt.hash(user.password, 10);
+		user.password = hashedPassword;
+	});
 
-UserSchema.pre('save', async function (next) {
-	if (!this.isModified('password')) {
-		return next();
-	}
+	// Method to compare provided password with the hashed password
+	User.prototype.comparePassword = async function (password) {
+		return bcrypt.compare(password, this.password);
+	};
 
-	const hash = await bcrypt.hash(this.password, 10);
-	this.password = hash;
-	next();
-});
+	// Method to generateOTP for user
+	User.prototype.generateOTP = function () {
+		return crypto.randomInt(100000, 1000000).toString();
+	};
 
-const UserModel = mongoose.model('User', UserSchema);
+	// Method to send otp to user email
+	User.prototype.sendOTPToEmail = async function () {
+		const otp = this.generateOTP();
+		const otpExpiration = new Date(Date.now() + CONFIG.OTP_EXPIRATION_DURATION);
 
-module.exports = UserModel;
+		this.Otp = otp;
+		this.OtpExpiration = otpExpiration;
+
+		await sendEmailNotification(
+			this.email,
+			'OTP Verification',
+			`Your OTP for email verification is: ${otp}. It will expire in 5 minutes`
+		);
+	};
+
+	User.prototype.verifyOTP = function (enteredOTP) {
+		if (this.OtpExpiration < new Date()) {
+			return false;
+		}
+
+		return this.Otp === enteredOTP;
+	};
+
+	return User;
+};

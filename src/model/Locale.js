@@ -1,23 +1,56 @@
-const mongoose = require('mongoose');
+module.exports = (sequelize, DataTypes) => {
+	return sequelize.define(
+		'locale',
+		{
+			id: {
+				type: DataTypes.UUID,
+				allowNull: false,
+				primaryKey: true,
+				defaultValue: DataTypes.UUIDV4,
+			},
+			region: {
+				type: DataTypes.STRING,
+				allowNull: false,
+			},
+			state: {
+				type: DataTypes.STRING,
+				allowNull: false,
+			},
+			LGA: {
+				type: DataTypes.ARRAY(DataTypes.STRING),
+				allowNull: false,
+			},
+			metadata: {
+				type: DataTypes.JSON, // Use JSON type for metadata
+				allowNull: false,
+				validate: {
+					validateMetatdata(value) {
+						if (!value || typeof value !== 'object') {
+							throw new Error('metadata must be an object');
+						}
 
-const Schema = mongoose.Schema;
+						const requiredFields = [
+							'slogan',
+							'landmass',
+							'population',
+							'dialect',
+							'latitude',
+							'longitude',
+							'createdDate',
+							'createdBy',
+						];
 
-const locationSchema = new Schema({
-	region: { type: String, required: true },
-	state: { type: String, required: true },
-	LGA: { type: [String], required: true },
-	metadata: {
-		slogan: { type: String, required: true },
-		landmass: { type: String, required: true },
-		population: { type: String, required: true },
-		dialect: { type: String, required: true },
-		latitude: { type: String, required: true },
-		longitude: { type: String, required: true },
-		createdDate: { type: String, required: true },
-		createdBy: { type: String, required: true },
-	},
-});
-
-const LocationModel = mongoose.model('Location', locationSchema);
-
-module.exports = LocationModel;
+						for (const field of requiredFields) {
+							if (!value[field]) {
+								throw new Error(`metadata.${field} is required`);
+							}
+						}
+					},
+				},
+			},
+		},
+		{
+			tableName: 'location',
+		}
+	);
+};
