@@ -1,14 +1,15 @@
-const { sequelize, DataTypes } = require('sequelize');
-const { connectToDatabase, syncTable } = require('../../config/dbConfig');
+const { DataTypes } = require('sequelize');
+const {
+	sequelize,
+	connectToDatabase,
+	syncTable,
+} = require('../../config/dbConfig');
 
 const UserModel = require('./User')(sequelize, DataTypes);
 const apiKeyModel = require('./ApiKey');
 const localeModel = require('./Locale');
 
-(async () => {
-	await connectToDatabase();
-	await syncTable();
-})();
+connectToDatabase();
 
 const User = UserModel;
 // const User = UserModel(sequelize, DataTypes);
@@ -23,6 +24,8 @@ User.hasOne(apiKey, {
 apiKey.belongsTo(User, {
 	foreignKey: 'createdBy',
 });
+
+syncTable();
 
 module.exports = {
 	User,

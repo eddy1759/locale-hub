@@ -1,67 +1,56 @@
 module.exports = (sequelize, DataTypes) => {
-	return sequelize.define('locale', {
-		id: {
-			type: DataTypes.UUID,
-			allowNull: false,
-			primaryKey: true,
-			defaultValue: DataTypes.UUIDV4,
-		},
-		region: {
-			type: DataTypes.STRING,
-			required: true,
-			allowNull: false,
-		},
-		state: {
-			type: DataTypes.STRING,
-			required: true,
-			allowNull: false,
-		},
-		LGA: {
-			type: DataTypes.ARRAY(DataTypes.STRING),
-			required: true,
-			allowNull: false,
-		},
-		metadata: {
-			slogan: {
+	return sequelize.define(
+		'locale',
+		{
+			id: {
+				type: DataTypes.UUID,
+				allowNull: false,
+				primaryKey: true,
+				defaultValue: DataTypes.UUIDV4,
+			},
+			region: {
 				type: DataTypes.STRING,
-				required: true,
 				allowNull: false,
 			},
-			landmass: {
+			state: {
 				type: DataTypes.STRING,
-				required: true,
 				allowNull: false,
 			},
-			population: {
-				type: DataTypes.STRING,
-				required: true,
+			LGA: {
+				type: DataTypes.ARRAY(DataTypes.STRING),
 				allowNull: false,
 			},
-			dialect: {
-				type: DataTypes.STRING,
-				required: true,
+			metadata: {
+				type: DataTypes.JSON, // Use JSON type for metadata
 				allowNull: false,
-			},
-			lattitude: {
-				type: DataTypes.STRING,
-				required: true,
-				allowNull: false,
-			},
-			longittude: {
-				type: DataTypes.STRING,
-				required: true,
-				allowNull: false,
-			},
-			createdDate: {
-				type: DataTypes.STRING,
-				required: true,
-				allowNull: false,
-			},
-			createdBy: {
-				type: DataTypes.STRING,
-				required: true,
-				allowNull: false,
+				validate: {
+					validateMetatdata(value) {
+						if (!value || typeof value !== 'object') {
+							throw new Error('metadata must be an object');
+						}
+
+						const requiredFields = [
+							'slogan',
+							'landmass',
+							'population',
+							'dialect',
+							'latitude',
+							'longitude',
+							'createdDate',
+							'createdBy',
+						];
+
+						for (const field of requiredFields) {
+							if (!value[field]) {
+								throw new Error(`metadata.${field} is required`);
+							}
+						}
+					},
+				},
 			},
 		},
-	});
+		{
+			tableName: 'location',
+		}
+	);
 };
