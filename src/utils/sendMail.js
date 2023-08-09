@@ -28,5 +28,4 @@ async function sendEmailNotification(email, subject, body) {
 	}
 }
 
-
 module.exports = sendEmailNotification;
