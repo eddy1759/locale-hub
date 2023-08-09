@@ -46,6 +46,7 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: false,
 			defaultValue: false,
 		},
+		tablename: 'users',
 	});
 
 	// Sequelize hooks to hash the password before saving

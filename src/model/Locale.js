@@ -22,31 +22,45 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: false,
 		},
 		metadata: {
-			type: DataTypes.JSON,
-			allowNull: false,
-			validate: {
-				validateMetatdata(value) {
-					if (!value || typeof value !== 'object') {
-						throw new Error('metadata must be an object');
-					}
-
-					const requiredFields = [
-						'slogan',
-						'landmass',
-						'population',
-						'dialect',
-						'latitude',
-						'longitude',
-						'createdDate',
-						'createdBy',
-					];
-
-					for (const field of requiredFields) {
-						if (!value[field]) {
-							throw new Error(`metadata.${field} is required`);
-						}
-					}
-				},
+			slogan: {
+				type: DataTypes.STRING,
+				required: true,
+				allowNull: false,
+			},
+			landmass: {
+				type: DataTypes.STRING,
+				required: true,
+				allowNull: false,
+			},
+			population: {
+				type: DataTypes.STRING,
+				required: true,
+				allowNull: false,
+			},
+			dialect: {
+				type: DataTypes.STRING,
+				required: true,
+				allowNull: false,
+			},
+			lattitude: {
+				type: DataTypes.STRING,
+				required: true,
+				allowNull: false,
+			},
+			longittude: {
+				type: DataTypes.STRING,
+				required: true,
+				allowNull: false,
+			},
+			createdDate: {
+				type: DataTypes.STRING,
+				required: true,
+				allowNull: false,
+			},
+			createdBy: {
+				type: DataTypes.STRING,
+				required: true,
+				allowNull: false,
 			},
 		},
 	});
