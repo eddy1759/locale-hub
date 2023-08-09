@@ -1,4 +1,7 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const sendEmailNotification = require('../utils/sendMail');
+const CONFIG = require('../../config/config');
 
 module.exports = (sequelize, DataTypes) => {
 	const User = sequelize.define(
@@ -40,8 +43,11 @@ module.exports = (sequelize, DataTypes) => {
 			Otp: {
 				type: DataTypes.INTEGER,
 				validate: {
-					len: [4],
+					len: [6],
 				},
+			},
+			OtpExpiration: {
+				type: DataTypes.DATE,
 			},
 			isVerified: {
 				type: DataTypes.BOOLEAN,
@@ -63,6 +69,34 @@ module.exports = (sequelize, DataTypes) => {
 	// Method to compare provided password with the hashed password
 	User.prototype.comparePassword = async function (password) {
 		return bcrypt.compare(password, this.password);
+	};
+
+	// Method to generateOTP for user
+	User.prototype.generateOTP = function () {
+		return crypto.randomInt(100000, 1000000).toString();
+	};
+
+	// Method to send otp to user email
+	User.prototype.sendOTPToEmail = async function () {
+		const otp = this.generateOTP();
+		const otpExpiration = new Date(Date.now() + CONFIG.OTP_EXPIRATION_DURATION);
+
+		this.Otp = otp;
+		this.OtpExpiration = otpExpiration;
+
+		await sendEmailNotification(
+			this.email,
+			'OTP Verification',
+			`Your OTP for email verification is: ${otp}. It will expire in 5 minutes`
+		);
+	};
+
+	User.prototype.verifyOTP = function (enteredOTP) {
+		if (this.OtpExpiration < new Date()) {
+			return false;
+		}
+
+		return this.Otp === enteredOTP;
 	};
 
 	return User;

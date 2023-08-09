@@ -11,6 +11,7 @@ const CONFIG = {
 	expiresIn: process.env.EXPIRE_IN,
 	tty: process.env.CACHE_EXPIRATION_SECONDS,
 	GOOGLE_PASS: process.env.GOOGLE_PASS,
+	OTP_EXPIRATION_DURATION: process.env.OTP_EXPIRATION_DURATION,
 };
 
 module.exports = CONFIG;
