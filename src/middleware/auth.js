@@ -1,12 +1,12 @@
-const jwt = require('jsonwebtoken');
 const APIKeyModel = require('../model/ApiKey');
-const CONFIG = require('../config/config');
 const { errorLogger } = require('./logger');
+const { verifyJWT } = require('../utils/helper');
 
 async function authenticateApiKey(req, res, next) {
 	try {
 		// Check if API key is provided in the request query parameters or as bearer token in the header
-		const apiKey = req.query.apiKey;
+		// const apiKey = req.query.apiKey;
+		const apiKey = req.headers('Authorization').split(' ')[1];
 		if (!apiKey) {
 			return res.status(401).json({ message: 'API key is required' });
 		}
@@ -19,7 +19,7 @@ async function authenticateApiKey(req, res, next) {
 			return res.status(401).json({ message: 'Invalid API key' });
 		}
 
-		// Attach the user ID and API key to the request object
+		// Attach the API key to the request object
 		req.apiKey = apiKey;
 		next();
 	} catch (error) {
@@ -39,7 +39,8 @@ const authenticateUser = async (req, res, next) => {
 				.status(401)
 				.json({ message: 'Authorization token is missing' });
 		}
-		const decodedToken = jwt.verify(token, CONFIG.SECRET);
+		// const decodedToken = jwt.verify(token, CONFIG.SECRET);
+		const decodedToken = verifyJWT(token);
 
 		// Attach the user ID and API key to the request object
 		req.userId = decodedToken.userId;
