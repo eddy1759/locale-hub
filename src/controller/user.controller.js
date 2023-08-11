@@ -1,90 +1,90 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-
-const UserModel = require('../model/User');
-const APIKeyModel = require('../model/ApiKey');
-
-const generateAPIKEY = require('../utils/helper');
-const CONFIG = require('../config/config');
-const { errorLogger } = require('../middleware/logger');
+const { validationResult } = require('express-validator');
+const { errorLogger } = require('../utils/logger');
+const userService = require('../services/user.service');
 
 const registerUser = async (req, res) => {
-	const { username, email, password } = req.body;
 	try {
-		const existingUser = await UserModel.findOne({ email });
-		if (existingUser) {
-			return res.status(404).json({ error: 'User Already Exist' });
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return res.status(400).json({
+				success: false,
+				error: errors.array()[0].msg,
+			});
 		}
-		const user = await UserModel.create({
-			username,
-			email,
-			password,
-		});
-		await user.save();
-		return res.status(201).json({ message: 'Register Successfully' });
+		const user = userService.createUser(req.body);
+		if (user instanceof Error) {
+			return res.status(400).json({ success: false, error: user.message });
+		}
+		await user.sendOTPToEmail();
+
+		res.status(201).json({ message: 'User Registered Successfully' });
 	} catch (error) {
-		errorLogger.error(error);
+		errorLogger.error(error.message);
+		return res
+			.status(500)
+			.json({ status: false, error: 'Internal Server Error' });
+	}
+};
+
+const otpVerification = async (req, res) => {
+	try {
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return res.json({
+				success: false,
+				error: errors.array()[0].msg,
+			});
+		}
+		const user = userService.verifyOtp(req.body);
+		if (user instanceof Error) {
+			return res.status(400).json({ success: false, error: user.message });
+		}
+		return res
+			.status(200)
+			.json({ success: true, message: 'OTP verified successfully' });
+	} catch (error) {
+		errorLogger.error(error.message);
 		return res
 			.status(500)
 			.json({ status: false, error: 'Internal server error' });
 	}
 };
 
-const loginUser = async (req, res) => {
-	const { email, password } = req.body;
+const signIn = async (req, res) => {
 	try {
-		const user = await UserModel.findOne({ email });
-
-		if (!user) {
-			return res.status(404).send("User doesn't exist, Signup");
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return res.json({
+				success: false,
+				error: errors.array()[0].msg,
+			});
+		}
+		const loginResult = await userService.loginUser(
+			req.body.email,
+			req.body.password
+		);
+		if (loginResult instanceof Error) {
+			return res
+				.status(401)
+				.json({ success: false, error: 'Invalid email or password' });
 		}
 
-		const match = await bcrypt.compare(password, user.password);
-		if (!match) {
-			return res.status(401).send('Invalid password');
-		}
-		const userApiKey = await APIKeyModel.findOne({ userId: user._id });
+		// Destructuring the returned object
+		const { apiKey, token } = loginResult;
 
-		if (userApiKey) {
-			return res.status(200).json({ message: "You're logged in" });
-		}
-
-		const api_key = generateAPIKEY();
-
-		const apiKey = await APIKeyModel.create({
-			userId: user._id,
-			apiKey: api_key,
-		});
-		await apiKey.save();
-		user.apiKeyId = apiKey._id;
-
-		await user.save();
-
-		const token = jwt.sign({ userId: user._id }, CONFIG.SECRET, {
-			expiresIn: CONFIG.expiresIn,
-		});
-
-		req.session.token = token;
-
-		res.cookie('token', token, {
-			secure: false, // Set to true if using HTTPS
-			httpOnly: true,
-			maxAge: 10800000, // Session expiration time (in milliseconds)
-		});
-
+		// Instead of setting the token and apiKey in req.session, return them in the response
 		return res.status(200).json({
-			status: true,
-			message:
-				'User logged in successfully, Save the apiKey as you will only see it once',
+			success: true,
+			message: 'User logged in successfully',
 			token: token,
 			apiKey: apiKey,
 		});
 	} catch (error) {
-		errorLogger.error(error);
+		errorLogger.error(error.message);
 		return res
 			.status(500)
 			.json({ status: false, error: 'Internal server error' });
 	}
 };
 
-module.exports = { registerUser, loginUser };
+module.exports = { registerUser, otpVerification, signIn };
