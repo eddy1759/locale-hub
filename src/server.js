@@ -1,6 +1,6 @@
 const app = require('./app');
-const CONFIG = require('./config/config');
-const { infoLogger } = require('./middleware/logger');
+const CONFIG = require('../config/config');
+const { infoLogger } = require('./utils/logger');
 const PORT = CONFIG.PORT;
 
 // Start the server

@@ -1,5 +1,5 @@
 const rateLimit = require('express-rate-limit');
-const CONFIG = require('../config/config');
+const CONFIG = require('../../config/config');
 
 const rateLimiter = rateLimit({
 	windowMs: parseInt(CONFIG.rateLimitWindowMs),

@@ -16,10 +16,6 @@ module.exports = (sequelize, DataTypes) => {
 				type: DataTypes.STRING,
 				allowNull: false,
 			},
-			LGA: {
-				type: DataTypes.ARRAY(DataTypes.STRING),
-				allowNull: false,
-			},
 			metadata: {
 				type: DataTypes.JSON, // Use JSON type for metadata
 				allowNull: false,
@@ -47,6 +43,10 @@ module.exports = (sequelize, DataTypes) => {
 						}
 					},
 				},
+			},
+			LGA: {
+				type: DataTypes.ARRAY(DataTypes.STRING),
+				allowNull: false,
 			},
 		},
 		{
