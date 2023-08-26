@@ -194,7 +194,7 @@ GET locations/state?state_name=Abia&apiKey=${apiKey}
 ## Contributing
 
 If you would like to contribute to this project, please feel free to fork the repository, create a feature branch, and open a Pull Request!
-
+![Alt](https://repobeats.axiom.co/api/embed/8fcb123270b42aa194e8ed681c8d6353d977945b.svg "Repobeats analytics image")
 ---
 
 ## Contact
